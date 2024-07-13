@@ -71,6 +71,13 @@ char editorReadKey(void) {
 
 /** output **/
 
+void editorDrawRows(void) {
+  int y;
+  for (y=0; y < 24; y++){
+    write(STDOUT_FILENO, "|\r\n", 3);
+  }
+}
+
 void editorRefreshScreen(void) {
   //The 4 in our write() call means we are writing 4 bytes out to the terminal.
   //The first byte is \x1b, which is the escape character, or 27 in decimal.
@@ -82,6 +89,8 @@ void editorRefreshScreen(void) {
                                      // command, 3 bytes.
                                      // H takes two args actually, row, col. defaults
                                      // to 1,1 so we pass no args
+  editorDrawRows();
+  write(STDOUT_FILENO, "\x1b[H", 3);
 
 }
 
