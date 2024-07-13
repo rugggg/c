@@ -18,17 +18,19 @@ struct termios orig_termios;
 
 /** terminal **/
 void die(const char *s) {
+  // first clear the screen
+  clearScreen();
+  // error and exit
   perror(s);
   exit(1);
 }
 
-
-void disableRawMode() {
+void disableRawMode(void) {
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1)
     die("tcsetattr");
 }
 
-void enableRawMode() {
+void enableRawMode(void) {
   if (tcgetattr(STDIN_FILENO, &orig_termios) == -1) die("tcgetattr");
   atexit(disableRawMode);
 
@@ -50,7 +52,12 @@ void enableRawMode() {
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");
 }
 
-char editorReadKey() {
+void clearScreen(void) {
+  write(STDOUT_FILENO, "\x1b[2J", 4);
+  write(STDOUT_FILENO, "\x1b[H", 3);
+}
+
+char editorReadKey(void) {
   int nread;
   char c;
   while ((nread = read(STDIN_FILENO, &c, 1)) != 1){
@@ -59,20 +66,38 @@ char editorReadKey() {
   return c;
 }
 
+/** output **/
+
+void editorRefreshScreen(void) {
+  //The 4 in our write() call means we are writing 4 bytes out to the terminal.
+  //The first byte is \x1b, which is the escape character, or 27 in decimal.
+  //(Try and remember \x1b, we will be using it a lot.)
+  //The other three bytes are [2J.
+  //so this writes the escape sequence to teminal
+  write(STDOUT_FILENO, "\x1b[2J", 4);
+  write(STDOUT_FILENO, "\x1b[H", 3); // esc seq \x1b[ and H (cursor position) 
+                                     // command, 3 bytes.
+                                     // H takes two args actually, row, col. defaults
+                                     // to 1,1 so we pass no args
+
+}
+
 /** input **/
-void editorProcessKeypress(){
+void editorProcessKeypress(void){
   char c = editorReadKey();
   switch (c){
     case CTRL_KEY('q'):
+      clearScreen();
       exit(0);
       break;
   }
 }
 
 /** main ***/
-int main() {
+int main(void) {
   enableRawMode();
   while (1) {
+    editorRefreshScreen();
     editorProcessKeypress();
   };
 
