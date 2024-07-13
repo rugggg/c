@@ -13,6 +13,9 @@
                                  // you press in combination with Ctrl,
                                  // and sends that
                                  // and, bit 5 fwiw, is typically lower/upper case bit
+                                 //
+/** prototype def, prob move to headers later **/
+void clearScreen(void);
 /** data **/
 struct termios orig_termios;
 
